@@ -7,10 +7,12 @@ import logging
 import random
 from argparse import ArgumentParser
 import urllib3
+import itertools
 
 from chibi.file import Chibi_path
 from chibi.config import basic_config, load as load_config
 from chibi_alchemist.periodic_table import load_all_elements, Element
+from chibi_alchemist.snippets import split_elements
 
 
 logger_formarter = '%(levelname)s %(name)s %(asctime)s %(message)s'
@@ -73,6 +75,11 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--oxidation", dest="oxidation", action="store_true",
+    help="imprime oxidacion del elemento"
+)
+
+parser.add_argument(
     "--electron_config", dest="electron_config", action="store_true",
     help="imprime la configuracion electronica"
 )
@@ -83,10 +90,21 @@ def main():
     elements = load_all_elements()
 
     by_symbol = { e.symbol: e for e in elements }
-    select = ( by_symbol[ e ] for e in args.elements )
+    chain_of_elements = map( split_elements, args.elements )
+    chain_of_elements = itertools.chain.from_iterable( chain_of_elements )
+    #select = ( by_symbol[ e ] for e in args.elements )
+    select = ( by_symbol[ e ] for e in chain_of_elements )
 
     if args.ionization:
         for element in select:
+            table = "\t".join( map( str, element.ionization_energies ) )
+            output = f"{element.name}\t{table}"
+            print( output )
+
+    if args.oxidation:
+        for element in select:
+            import pdb
+            pdb.set_trace()
             table = "\t".join( map( str, element.ionization_energies ) )
             output = f"{element.name}\t{table}"
             print( output )
